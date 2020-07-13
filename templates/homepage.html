@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>SmartCounter</h2>
+
+<form action="/auth/" method="post">
+  {% csrf_token %}
+   Email:
+   <input type="email" name="email">
+   Password:
+   <input type="password" name="passwd">
+   <input type="submit" value="SignIn">
+</form>
+{% endblock %}
