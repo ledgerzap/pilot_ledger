@@ -1,13 +1,19 @@
 {% extends 'base.html' %}
 {% block content %}
+{% if message %}
+<script>
+    alert('{{ message }}')
+</script>
+{% endif %}
 <h2>SmartCounter</h2>
 
-<form action="/auth/" method="post">
+<form action="/authenticate/" method="post">
   {% csrf_token %}
    Email:
-   <input type="email" name="email">
+   <input type="email" name="email"><br>
    Password:
-   <input type="password" name="passwd">
+   <input type="password" name="passwd"><br>
    <input type="submit" value="SignIn">
+   <button type="button" onclick="location.href='/signup/'">Signup</button>
 </form>
 {% endblock %}
