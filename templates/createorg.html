@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LedgerZap</title>
+</head>
+<body>
+<form action = '/dashboard/postcreateorg/' method="post">
+    {% csrf_token %}
+    Name:
+    <input type="text" name="name"><br>
+    <input type="submit" value="CREATE"><br>
+</form>
+</body>
+</html>

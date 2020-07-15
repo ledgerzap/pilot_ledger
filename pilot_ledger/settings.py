@@ -37,7 +37,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'smartcounter.urls'
+ROOT_URLCONF = 'pilot_ledger.urls'
 
 TEMPLATES = [
     {
@@ -55,7 +55,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'smartcounter.wsgi.application'
+WSGI_APPLICATION = 'pilot_ledger.wsgi.application'
 
 
 # Database
@@ -64,7 +64,7 @@ WSGI_APPLICATION = 'smartcounter.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'smartcounter',
+        'NAME': 'pilot_ledger',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': 'localhost'
