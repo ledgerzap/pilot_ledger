@@ -4,8 +4,7 @@ from firebase_utils import app
 
 # Create your views here.
 def dashboard(request):
-    
-    info = {}
+    org_ref = app.fetch_firestore('organizations')
     return render(request, 'dashboard.html', info)
 
 

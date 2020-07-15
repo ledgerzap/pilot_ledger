@@ -27,7 +27,7 @@ def authenticate(request):
     email = request.POST.get('email')
     passwd = request.POST.get('passwd')
     app.signin_using_email_pass(email, passwd)
-    return HttpResponse("hello")
+
 
 """
     try:
