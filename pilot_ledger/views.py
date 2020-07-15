@@ -5,14 +5,14 @@ import pyrebase
 from firebase_utils import app
 
 firebaseConfig = {
-    'apiKey': "AIzaSyCuwsWy5bvz7c0Yv15M4GO9I42We4ZeSBk",
-    'authDomain': "smartcounter-7195c.firebaseapp.com",
-    'databaseURL': "https://smartcounter-7195c.firebaseio.com",
-    'projectId': "smartcounter-7195c",
-    'storageBucket': "smartcounter-7195c.appspot.com",
-    'messagingSenderId': "241009535777",
-    'appId': "1:241009535777:web:b9eaf5a4c10f84a7e6ec60",
-    'measurementId': "G-JD5WVQ3GC8"
+    'apiKey': "AIzaSyAbVymBBzthUgBOt4RcL1MvxWf7LfKOISk",
+    'authDomain': "ledgerzap.firebaseapp.com",
+    'databaseURL': "https://ledgerzap.firebaseio.com",
+    'projectId': "ledgerzap",
+    'storageBucket': "ledgerzap.appspot.com",
+    'messagingSenderId': "767427613315",
+    'appId': "1:767427613315:web:1f85d1e72c30bef88cc1b6",
+    'measurementId': "G-2CBEVQ99KF"
 }
 firebase = pyrebase.initialize_app(firebaseConfig)
 authen = firebase.auth()
