@@ -7,7 +7,7 @@ from firebase_admin import firestore
 Generate private key file for service account
 Project Settings -> Service account -> Generate Private Key
 """
-
+# Todo : optimize queries: add collection ref in init.
 
 class FirebaseSDK(object):
     """
@@ -24,10 +24,10 @@ class FirebaseSDK(object):
     def create_user_using_email_pass(self, name, email, password, contact):
         """
         Create a new user and return the UID of newly created user
-        :param name: User's propername, class <str>
-        :param email: string
-        :param password: string
-        :param contact: number
+        :param name: User's propername, <class 'str'>
+        :param email: User's email, <class 'str'>
+        :param password: User's password, <class 'str'>
+        :param contact: User's contact number, <class 'int'>
         :return: UID of created user
         """
         # Todo: Same user error handling.
@@ -44,11 +44,12 @@ class FirebaseSDK(object):
 
     def add_to_firestore(self, data, collection, doc=None):
         """
-        Push Data to firestore, if doc not provided uses auto generated key
-        :param data: dict
-        :param collection: string
-        :param doc: string
-        :return: document Id of generated data
+        Takes the data and pushes it to cloud firestore, if document is not provided document key is automatically
+        generated.
+        :param data to be pushed, <class 'dict'>
+        :param collection: name of collection in cloud firestore, <class 'str'>
+        :param doc: name of document in the collection, <class 'str'>
+        :return: Document Id of generated data
         """
         db = firestore.client()
         ref = db.collection(collection).document(doc)
@@ -57,23 +58,24 @@ class FirebaseSDK(object):
 
     def signin_using_email_pass(self, email, password):
         """
+        SignIn function, creates a session for the signed in user.
         # Todo: add authentication
-        :param email:
-        :param password:
-        :return: user document
+        :param email: User's email, <class 'str'>
+        :param password: User's password, <class 'str'>
+        :return: User's UID, <class 'str'>
         """
         user = auth.get_user_by_email(email)
         db = firestore.client()
         users_ref = db.collection('users')
         doc = users_ref.document(user.uid)
-        return doc
+        return doc.id
 
     def fetch_firestore(self, collection, document=None):
         """
-        Fetches reference to firestore. Reference to collection if document is not given
-        :param collection: string
-        :param document: string
-        :return: collection or document reference to firestore
+        Fetches a reference to cloud's firestore's document or collection.
+        :param collection: Name of thr collection in firestore, <class 'str'>
+        :param document: Document's name in collection
+        :return: Reference to the collection or document.
         """
         db = firestore.client()
         collection_ref = db.collection(collection)
@@ -85,15 +87,15 @@ class FirebaseSDK(object):
 
     def add_customer(self, name, contact, address, father_name, org_uid, introducer=None):
         """
-        Add a new customer for your organization and adds the customer id in your organizations' customer array
-        :param name: string
-        :param contact: number
-        :param address: string
-        :param father_name: string
-        :param org_uid: string
-        :param introducer: None or existing customer
-        :param deals: list of deals of a customer
-        :return: uid of customer
+        Add customer to the firestore's customer collection and adds the customer UID in the organization details.
+        :param name: Name of the customer, <class 'str'>
+        :param contact: Contact number of the customer, <class 'str'>
+        :param address: Address of the customer, <class 'str'>
+        :param father_name: Customer's father's name
+        :param org_uid: UID of organization who adding the customer, <class 'str'>
+        :param introducer: introducer of customer either from organization's customers or no one, <class 'NoneTypr'> or
+               <class 'str'>
+        :return: UID of customer
         """
         customer_details = {
             'name': name,
@@ -101,31 +103,59 @@ class FirebaseSDK(object):
             'father_name': father_name,
             'address': address,
             'introducer': introducer,
-            'deals': []
+            'organization': org_uid,
+            'deals': [],
+            'bank_accounts': []
         }
         customer_uid = self.add_to_firestore(customer_details, 'customer')
-        # print(type(customer_uid))
         doc_ref = self.fetch_firestore('organizations', org_uid)
         doc_ref.update({'customer': firestore.ArrayUnion([customer_uid])})
         return customer_uid
 
     def add_organization(self, name, user_uid):
         """
-        Creates a new organization.
-        :param name: string
-        :param user_uid: string
-        :return: organization's unique id
+        Makes a new organization with a UID and adds it into user's organizations list.
+        :param name: Name of organizations
+        :param user_uid: UID of organization's creater.
+        :return: organization's UID
         """
         org_details = {
             'name': name,
             'super_user': user_uid,
             'customer': [],
-            'users': []
+            'users': [],
+            'item_categories': [],
+            'item_name': []
         }
         org_uid = self.add_to_firestore(org_details, 'organizations')
         user_doc_ref = self.fetch_firestore('users', user_uid)
         user_doc_ref.update({'organizations': firestore.ArrayUnion([org_uid])})
         return org_uid
+
+    def add_deal(self, deal_type, customer_uid, original_bill, loan_amt, rate_of_interest, date_time, commitment_dt, lending_type,
+                 broker, deal_remark):
+        total_gross_val = sum(items['gross_val'] for items in original_bill)
+        deal_info = {
+            'deal_type': deal_type,
+            'customer_id': customer_uid,
+            'original_bill': original_bill,
+            'outstanding_bill': original_bill,
+            'withdrawn_items': [],
+            'original_total_gross': total_gross_val,
+            'outstanding_gross_amount': original_bill,
+            'loan_amount': loan_amt,
+            'interest_rate': rate_of_interest,
+            'deal_date': date_time,
+            'commitment_date': commitment_dt,
+            'lending_type': lending_type,
+            'broker': broker,
+            'deal_remark': deal_remark
+        }
+        deal_uid = self.add_to_firestore(deal_info, 'deals')
+        customer_doc_ref = self.fetch_firestore('customer', customer_uid)
+        customer_doc_ref.update({'deals': firestore.ArrayUnion([deal_uid])})
+
+
 
 if __name__ == '__main__':
 
@@ -137,8 +167,9 @@ if __name__ == '__main__':
         'email': "m@g.com",
         'password': "admin123"
         }
-    """
+    
 
     user_uid = app.create_user_using_email_pass('mudit', 'mohit@ledgerzap.com', 'admin123', 7424961361)
     org_uid = app.add_organization('kaeiter', user_uid)
     app.add_customer('mudit', 7424961361, 'khargone', 'mukesh', org_uid)
+    """
