@@ -2,11 +2,14 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import auth
 from firebase_admin import firestore
+import datetime
 
 """
 Generate private key file for service account
 Project Settings -> Service account -> Generate Private Key
 """
+
+
 # Todo : optimize queries: add collection ref in init.
 
 class FirebaseSDK(object):
@@ -14,6 +17,7 @@ class FirebaseSDK(object):
     A generic messenger for firebase administration
     Utilised for pushing and fetching the firebase firestore db
     """
+
     def __init__(self, key):
         """
         :param key: A credential initialized from a JSON certificate key file.
@@ -132,17 +136,50 @@ class FirebaseSDK(object):
         user_doc_ref.update({'organizations': firestore.ArrayUnion([org_uid])})
         return org_uid
 
-    def add_deal(self, deal_type, customer_uid, original_bill, loan_amt, rate_of_interest, date_time, commitment_dt, lending_type,
+
+class Deals(FirebaseSDK):
+    def __init__(self):
+        db = firestore.client()
+        self.deal_ref = db.collection('deals')
+        #self.app_instance = app
+
+    def add_deal(self, deal_type, customer_uid, original_bill, loan_amt, rate_of_interest, date_time, commitment_dt,
+                 lending_type,
                  broker, deal_remark):
+        """
+
+        :param deal_type:
+        :type deal_type:
+        :param customer_uid:
+        :type customer_uid:
+        :param original_bill:
+        :type original_bill:
+        :param loan_amt:
+        :type loan_amt:
+        :param rate_of_interest:
+        :type rate_of_interest:
+        :param date_time:
+        :type date_time:
+        :param commitment_dt:
+        :type commitment_dt:
+        :param lending_type:
+        :type lending_type:
+        :param broker:
+        :type broker:
+        :param deal_remark:
+        :type deal_remark:
+        """
         total_gross_val = sum(items['gross_val'] for items in original_bill)
+        total_weight = sum(items['item_weight'] for items in original_bill)
         deal_info = {
             'deal_type': deal_type,
             'customer_id': customer_uid,
             'original_bill': original_bill,
             'outstanding_bill': original_bill,
-            'withdrawn_items': [],
+            'total_weight': total_weight,
             'original_total_gross': total_gross_val,
-            'outstanding_gross_amount': original_bill,
+            'withdrawn_items': [],
+            'outstanding_gross_amount': total_gross_val,
             'loan_amount': loan_amt,
             'interest_rate': rate_of_interest,
             'deal_date': date_time,
@@ -150,15 +187,31 @@ class FirebaseSDK(object):
             'lending_type': lending_type,
             'broker': broker,
             'deal_remark': deal_remark
+            'deal_status': 0
         }
         deal_uid = self.add_to_firestore(deal_info, 'deals')
         customer_doc_ref = self.fetch_firestore('customer', customer_uid)
         customer_doc_ref.update({'deals': firestore.ArrayUnion([deal_uid])})
+        return deal_uid
 
+    def withdrawal(self, item_details, deal_uid):
+        deal = self.deal_ref.document(deal_uid)
+        deal_dic = deal.get()
+        deal_dic = deal_dic.to_dict()
+        #print(type(deal_dic))
+        outstanding_gross_amount = deal_dic['outstanding_gross_amount']-item_details['gross_val']
+        if outstanding_gross_amount==0:
+            deal.update({'deal_status':1})
+        #print(outstanding_gross_amount)
+        deal.update({'outstanding_bill': firestore.ArrayRemove([item_details])})
+        deal.update({'withdrawn_items': firestore.ArrayUnion([item_details])})
+        deal.update({'outstanding_gross_amount': outstanding_gross_amount})
+
+    def edit_existing_deal(self, field, details):
+        pass
 
 
 if __name__ == '__main__':
-
     app = FirebaseSDK('ledgerzap-firebase.json')
     """
     user_data = {
@@ -173,3 +226,21 @@ if __name__ == '__main__':
     org_uid = app.add_organization('kaeiter', user_uid)
     app.add_customer('mudit', 7424961361, 'khargone', 'mukesh', org_uid)
     """
+    d = Deals()
+    """
+    d.add_deal(
+        "mortgage",
+        "mpXEygVCPJTuXZnMIHAl",
+        [{'item_name': 'biscuit', 'item_type': 'gold', 'item_weight': 10, 'gross_val':50000, 'quantity':2},
+         {'item_name': 'kada', 'item_type': 'silver', 'item_weight': 5, 'gross_val':15000 ,'quantity':1}],
+        650000,
+        0.1,
+        str(datetime.datetime.now()),
+        str(datetime.timedelta(days=300)),
+        "cash",
+        "mukesh",
+        "deal done"
+    )
+    """
+    item =  {'item_name': 'kada', 'item_type': 'silver', 'item_weight': 5, 'gross_val':15000}
+    d.withdrawal(item, "iP7Thd5kGlw3SvFrOXCm")
