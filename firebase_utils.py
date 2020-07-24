@@ -120,8 +120,11 @@ class FirebaseSDK(object):
         """
         Makes a new organization with a UID and adds it into user's organizations list.
         :param name: Name of organizations
+        :type <class 'str'>
         :param user_uid: UID of organization's creater.
+        :type: <class 'dict'>
         :return: organization's UID
+        :rtype: <class 'str'>
         """
         org_details = {
             'name': name,
@@ -140,8 +143,7 @@ class FirebaseSDK(object):
 class Deals(FirebaseSDK):
     def __init__(self):
         db = firestore.client()
-        self.deal_ref = db.collection('deals')
-        #self.app_instance = app
+        self.deals_ref = db.collection('deals')
 
     def add_deal(self, deal_type, customer_uid, original_bill, loan_amt, rate_of_interest, date_time, commitment_dt,
                  lending_type,
@@ -186,7 +188,7 @@ class Deals(FirebaseSDK):
             'commitment_date': commitment_dt,
             'lending_type': lending_type,
             'broker': broker,
-            'deal_remark': deal_remark
+            'deal_remark': deal_remark,
             'deal_status': 0
         }
         deal_uid = self.add_to_firestore(deal_info, 'deals')
@@ -195,10 +197,20 @@ class Deals(FirebaseSDK):
         return deal_uid
 
     def withdrawal(self, item_details, deal_uid):
-        deal = self.deal_ref.document(deal_uid)
-        deal_dic = deal.get()
-        deal_dic = deal_dic.to_dict()
+        """
+        Function top withdraw item from the deal. Item is removed and corresponding details are also updated.
+        :param item_details: Details of item to be removed.
+        :type item_details: <class 'dict'>
+        :param deal_uid: Unique Id of deal
+        :type deal_uid: <class 'str'>
+        :return: None
+        :rtype:None
+        """
+        deal = self.deals_ref.document(deal_uid)
+        deal_dic = deal.get().to_dict()
+        print(deal_dic)
         #print(type(deal_dic))
+        """
         outstanding_gross_amount = deal_dic['outstanding_gross_amount']-item_details['gross_val']
         if outstanding_gross_amount==0:
             deal.update({'deal_status':1})
@@ -206,8 +218,13 @@ class Deals(FirebaseSDK):
         deal.update({'outstanding_bill': firestore.ArrayRemove([item_details])})
         deal.update({'withdrawn_items': firestore.ArrayUnion([item_details])})
         deal.update({'outstanding_gross_amount': outstanding_gross_amount})
+        """
 
-    def edit_existing_deal(self, field, details):
+    def edit_existing_deal(self, field, value, deal_uid):
+        if field=="original_bill":
+            bill_ref =
+        deal_doc = self.deals_ref.document(deal_uid)
+        deal_doc.update({'{}'.format(field): value})
         pass
 
 
