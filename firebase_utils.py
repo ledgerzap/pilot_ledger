@@ -24,6 +24,8 @@ class FirebaseSDK(object):
         """
         cred = credentials.Certificate(key)
         firebase_admin.initialize_app(cred)
+        self.db = firestore.client()
+
 
     def create_user_using_email_pass(self, name, email, password, contact):
         """
@@ -55,8 +57,7 @@ class FirebaseSDK(object):
         :param doc: name of document in the collection, <class 'str'>
         :return: Document Id of generated data
         """
-        db = firestore.client()
-        ref = db.collection(collection).document(doc)
+        ref = self.db.collection(collection).document(doc)
         ref.set(data)
         return ref.id
 
@@ -69,8 +70,7 @@ class FirebaseSDK(object):
         :return: User's UID, <class 'str'>
         """
         user = auth.get_user_by_email(email)
-        db = firestore.client()
-        users_ref = db.collection('users')
+        users_ref = self.db.collection('users')
         doc = users_ref.document(user.uid)
         return doc.id
 
@@ -81,8 +81,7 @@ class FirebaseSDK(object):
         :param document: Document's name in collection
         :return: Reference to the collection or document.
         """
-        db = firestore.client()
-        collection_ref = db.collection(collection)
+        collection_ref = self.db.collection(collection)
         if document:
             doc_ref = collection_ref.document(document)
             return doc_ref
@@ -97,7 +96,7 @@ class FirebaseSDK(object):
         :param address: Address of the customer, <class 'str'>
         :param father_name: Customer's father's name
         :param org_uid: UID of organization who adding the customer, <class 'str'>
-        :param introducer: introducer of customer either from organization's customers or no one, <class 'NoneTypr'> or
+        :param introducer: introducer of customer either from organization's customers or no one, <class 'NoneType'> or
                <class 'str'>
         :return: UID of customer
         """
@@ -129,6 +128,7 @@ class FirebaseSDK(object):
         org_details = {
             'name': name,
             'super_user': user_uid,
+            'deals': [],
             'customer': [],
             'users': [],
             'item_categories': [],
@@ -144,35 +144,41 @@ class Deals(FirebaseSDK):
     def __init__(self):
         db = firestore.client()
         self.deals_ref = db.collection('deals')
+        self.org_ref = db.collection('organizations')
+        self.users_ref = db.collection('users')
+        self.customer_ref = db.collection('customer')
 
     def add_deal(self, deal_type, customer_uid, original_bill, loan_amt, rate_of_interest, date_time, commitment_dt,
-                 lending_type,
-                 broker, deal_remark):
+                 lending_type, broker, deal_remark, bank_acc=None):
         """
-
-        :param deal_type:
-        :type deal_type:
-        :param customer_uid:
-        :type customer_uid:
-        :param original_bill:
-        :type original_bill:
-        :param loan_amt:
-        :type loan_amt:
-        :param rate_of_interest:
-        :type rate_of_interest:
-        :param date_time:
-        :type date_time:
-        :param commitment_dt:
-        :type commitment_dt:
-        :param lending_type:
-        :type lending_type:
-        :param broker:
-        :type broker:
-        :param deal_remark:
-        :type deal_remark:
+        :param deal_type: The type of deal (mortgage or non-m)
+        :type deal_type: <class 'str'>
+        :param customer_uid: The unique ID of customer
+        :type customer_uid: <class 'str'>
+        :param original_bill: List of dictionary where each item of list is a bill composed of item_name, item_type,
+                              quantity, weight and gross value.
+        :type original_bill: <class 'list'>
+        :param loan_amt: Amount of money loaned.
+        :type loan_amt: <class 'float'>
+        :param rate_of_interest: Rate of interest on the deal
+        :type rate_of_interest: <class 'float'>
+        :param date_time: Date and time when the deal was signed
+        :type date_time: <class 'datetime'>
+        :param commitment_dt: Commitment datetime of the customer.
+        :type commitment_dt: <class 'datetime'>
+        :param lending_type: Lending type of the loaned amount (Bank Account/ Cash)
+        :type lending_type: <class 'str'>
+        :param bank_acc: Bank Account of customer, if amount loaned in bank account
+        :type: <class 'str'>
+        :param broker: The user of organization who signed the deal
+        :type broker: <class 'str'>
+        :param deal_remark: Remark or final notes on the deal.
+        :type deal_remark: <class 'str'>
         """
         total_gross_val = sum(items['gross_val'] for items in original_bill)
         total_weight = sum(items['item_weight'] for items in original_bill)
+        item_names = [items['item_name'] for items in original_bill]
+        item_types = [items['item_types'] for items in original_bill]
         deal_info = {
             'deal_type': deal_type,
             'customer_id': customer_uid,
@@ -187,13 +193,20 @@ class Deals(FirebaseSDK):
             'deal_date': date_time,
             'commitment_date': commitment_dt,
             'lending_type': lending_type,
+            'bank_account': bank_acc,
             'broker': broker,
             'deal_remark': deal_remark,
             'deal_status': 0
         }
         deal_uid = self.add_to_firestore(deal_info, 'deals')
-        customer_doc_ref = self.fetch_firestore('customer', customer_uid)
-        customer_doc_ref.update({'deals': firestore.ArrayUnion([deal_uid])})
+        customer_doc = self.customer_ref.document(customer_uid)
+        customer_doc.update({'deals': firestore.ArrayUnion([deal_uid]),
+                             'bank_accounts': firestore.ArrayUnion([bank_acc])})
+        customer_dict = customer_doc.get().to_dict()
+        org_doc = self.org_ref.document(customer_dict['organization'])
+        org_doc.update({'deals': firestore.ArrayUnion([deal_uid]),
+                        'item_name': firestore.ArrayUnion([item_names]),
+                        'item_categories': firestore.ArrayUnion([item_types])})
         return deal_uid
 
     def withdrawal(self, item_details, deal_uid):
@@ -209,7 +222,7 @@ class Deals(FirebaseSDK):
         deal = self.deals_ref.document(deal_uid)
         deal_dic = deal.get().to_dict()
         print(deal_dic)
-        #print(type(deal_dic))
+        # print(type(deal_dic))
         """
         outstanding_gross_amount = deal_dic['outstanding_gross_amount']-item_details['gross_val']
         if outstanding_gross_amount==0:
@@ -221,8 +234,9 @@ class Deals(FirebaseSDK):
         """
 
     def edit_existing_deal(self, field, value, deal_uid):
-        if field=="original_bill":
-            bill_ref =
+        if field == "original_bill":
+            pass
+            # BILL Quantity type
         deal_doc = self.deals_ref.document(deal_uid)
         deal_doc.update({'{}'.format(field): value})
         pass
@@ -259,5 +273,5 @@ if __name__ == '__main__':
         "deal done"
     )
     """
-    item =  {'item_name': 'kada', 'item_type': 'silver', 'item_weight': 5, 'gross_val':15000}
+    item = {'item_name': 'kada', 'item_type': 'silver', 'item_weight': 5, 'gross_val': 15000}
     d.withdrawal(item, "iP7Thd5kGlw3SvFrOXCm")
