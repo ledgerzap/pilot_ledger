@@ -162,13 +162,14 @@ class FirebaseSDK(object):
             curr_deals.append(deal_dict['outstanding_bill'])
         return curr_deals
 
+
+
 class Deals(FirebaseSDK):
     def __init__(self):
-        db = firestore.client()
-        self.deals_ref = db.collection('deals')
-        self.org_ref = db.collection('organizations')
-        self.users_ref = db.collection('users')
-        self.customer_ref = db.collection('customer')
+        self.deals_ref = self.db.collection('deals')
+        self.org_ref = self.db.collection('organizations')
+        self.users_ref = self.db.collection('users')
+        self.customer_ref = self.db.collection('customer')
 
     def add_deal(self, deal_type, customer_uid, original_bill, loan_amt, rate_of_interest, date_time, commitment_dt,
                  lending_type, broker, deal_remark, bank_acc=None):
