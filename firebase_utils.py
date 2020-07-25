@@ -140,6 +140,28 @@ class FirebaseSDK(object):
         return org_uid
 
 
+    def fetch_orgs(self, user_uid):
+        org_ref = self.db.collection('organizations')
+        user_doc = self.db.collection('users').document(user_uid)
+        user_dict = user_doc.get().to_dict()
+        org_uids = user_dict['organizations']
+        names = []
+        for uid in org_uids:
+            org_dict = org_ref.document(uid).get().to_dict()
+            names.append(org_dict['name'])
+        return names
+
+    def fetch_deals(self, org_uid):
+        org_ref = self.db.collection('organizations').document(org_uid)
+        org_dict = org_ref.get().to_dict()
+        org_deals = org_dict['deals']
+        curr_deals = []
+        for deal_uid in org_deals:
+            deal_ref = self.db.collection('deals').document(deal_uid)
+            deal_dict = deal_ref.get().to_dict()
+            curr_deals.append(deal_dict['outstanding_bill'])
+        return curr_deals
+
 class Deals(FirebaseSDK):
     def __init__(self):
         db = firestore.client()
