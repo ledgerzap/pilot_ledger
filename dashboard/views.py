@@ -2,11 +2,13 @@ from django.shortcuts import render
 from django.http import HttpResponse
 import firebase_utils
 
+
 # Create your views here.
 
 
 def createorg(request):
     return render(request, 'createorg.html', {})
+
 
 class DashDisplay(object):
     def __init__(self):
@@ -30,9 +32,10 @@ class DashDisplay(object):
 
     def postcreateorg(self, request):
         name = request.POST.get('name')
-        details = {'name':name, 'user': 'mud'}
+        details = {'name': name, 'user': 'mud'}
         self.app.add_to_firestore(details, 'organizations')
         return HttpResponse("org created")
 
 
-
+def dashboard(request):
+    return HttpResponse("hi")

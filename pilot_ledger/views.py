@@ -1,8 +1,8 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib import auth
-import pyrebase
-from firebase_utils import app
+import firebase_utils
+
 
 firebaseConfig = {
     'apiKey': "AIzaSyAbVymBBzthUgBOt4RcL1MvxWf7LfKOISk",
@@ -14,31 +14,37 @@ firebaseConfig = {
     'appId': "1:767427613315:web:1f85d1e72c30bef88cc1b6",
     'measurementId': "G-2CBEVQ99KF"
 }
-firebase = pyrebase.initialize_app(firebaseConfig)
-authen = firebase.auth()
-db = firebase.database()
+cursor = firebase_utils.FirebaseSDK('ledgerzap-firebase.json')
 
 
 def homepage(request):
+    """
+    This function renders and redirects to the homepage or sign in page of the application.
+    :param request: Http request
+    :type request: HTTP_REQUEST
+    :return: Http Request with the homepage
+    :rtype: HTTP_RESPONSE
+    """
     return render(request, 'homepage.html', {})
 
 
 def authenticate(request):
+    """
+    This Function authenticates the user and redirects them to the dashboard window. If authentication fails error
+    message is displayed and the user returns to the homepage.
+    :param request: Http request containing the username and password.
+    :type request: HTTP_REQUEST
+    :return: Http response with the dashboard window.
+    :rtype: HTTP_RESPONSE
+    """
     email = request.POST.get('email')
     passwd = request.POST.get('passwd')
-    app.signin_using_email_pass(email, passwd)
-
-
-"""
-    try:
-        user = authen.sign_in_with_email_and_password(email, passwd)
-    except:
-        txt = "Invalid Credentials"
-        return render(request, 'homepage.html', {'message': txt})
-    sessions_id = user['idToken']
-    request.session['uid'] = str(sessions_id)
-    return redirect('/dashboard/')
-"""
+    print(email, passwd)
+    res = cursor.signin_using_email_pass(email, passwd)
+    if res:
+        return redirect('/dashboard/')
+    else:
+        return HttpResponse("try again")
 
 def signup(request):
     return render(request, 'signup.html', {})
@@ -50,18 +56,7 @@ def postsignup(request):
     passwd = request.POST.get("passwd")
     rpasswd = request.POST.get("rpasswd")
     contact_no = request.POST.get("contact")
-    if passwd != rpasswd:
-        return render(request, 'signup.html', {'message': "PASSWORD DO NOT MATCH"})
-    else:
-        try:
-            user = authen.create_user_with_email_and_password(email, passwd)
-        except:
-            return render(request, 'signup.html', {'message': "USER ALREADY EXIST"})
-            # makeit return redirect(signup)
-        uid = user['localId']
-        data = {'name': name, 'email': email, 'password': passwd}
-        db.child("users").child(uid).set(data)
-        return redirect('/')
+    pass
 
 
 def logout(request):

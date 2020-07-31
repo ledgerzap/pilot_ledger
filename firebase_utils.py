@@ -25,6 +25,7 @@ class FirebaseSDK(object):
         cred = credentials.Certificate(key)
         firebase_admin.initialize_app(cred)
         self.db = firestore.client()
+        self.user_ref = self.db.collection('users')
 
 
     def create_user_using_email_pass(self, name, email, password, contact):
@@ -70,9 +71,16 @@ class FirebaseSDK(object):
         :return: User's UID, <class 'str'>
         """
         user = auth.get_user_by_email(email)
-        users_ref = self.db.collection('users')
-        doc = users_ref.document(user.uid)
-        return doc.id
+        user_doc_ref = self.user_ref.document(user.uid)
+        user_dict = user_doc_ref.get().to_dict()
+        passwd = user_dict['password']
+        print(password, passwd)
+        if passwd == password:
+            return True
+        else:
+            return False
+
+
 
     def fetch_firestore(self, collection, document=None):
         """
