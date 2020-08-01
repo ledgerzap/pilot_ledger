@@ -47,7 +47,10 @@ class FirebaseSDK(object):
             'contact': contact,
             'organizations': []
         }
-        user = auth.create_user(email=email, password=password)
+        try:
+            user = auth.create_user(email=email, password=password)
+        except exceptions.AlreadyExistsError:
+            return "USER ALREADY EXIST"
         self.add_to_firestore(user_data, 'users', user.uid)
         return user.uid
 
