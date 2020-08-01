@@ -2,6 +2,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import auth
 from firebase_admin import firestore
+from firebase_admin import exceptions
 import datetime
 
 """
@@ -11,6 +12,7 @@ Project Settings -> Service account -> Generate Private Key
 
 
 # Todo : optimize queries: add collection ref in init.
+
 
 class FirebaseSDK(object):
     """
@@ -64,21 +66,23 @@ class FirebaseSDK(object):
 
     def signin_using_email_pass(self, email, password):
         """
-        SignIn function, creates a session for the signed in user.
-        # Todo: add authentication
+        Signs in the user using the firebase authentication and creates a session for the signed in user.
         :param email: User's email, <class 'str'>
         :param password: User's password, <class 'str'>
         :return: User's UID, <class 'str'>
         """
-        user = auth.get_user_by_email(email)
+        try:
+            user = auth.get_user_by_email(email)
+        except exceptions.NotFoundError:
+            return "USER NOT FOUND"
+
         user_doc_ref = self.user_ref.document(user.uid)
         user_dict = user_doc_ref.get().to_dict()
         passwd = user_dict['password']
-        print(password, passwd)
         if passwd == password:
-            return True
+            return user.uid
         else:
-            return False
+            return "INCORRECT PASSWORD"
 
 
 

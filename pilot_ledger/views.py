@@ -39,12 +39,11 @@ def authenticate(request):
     """
     email = request.POST.get('email')
     passwd = request.POST.get('passwd')
-    print(email, passwd)
     res = cursor.signin_using_email_pass(email, passwd)
-    if res:
+    if res != "USER NOT FOUND" or res != "INCORRECT PASSWORD":
         return redirect('/dashboard/')
     else:
-        return HttpResponse("try again")
+        return render(request, 'homepage.html', {'message': res})
 
 def signup(request):
     return render(request, 'signup.html', {})

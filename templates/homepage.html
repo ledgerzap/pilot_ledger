@@ -2,7 +2,8 @@
 {% block content %}
 {% if message %}
 <script>
-    alert('{{ message }}')
+    alert('{{ message }}');
+    window.location.href='/';
 </script>
 {% endif %}
 <h2>LedgerZap</h2>
