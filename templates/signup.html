@@ -2,12 +2,13 @@
 {% block content %}
 {% if message %}
 <script>
-    alert('{{ message }}')
+    alert('{{ message }}');
+    window.location.href='/signup/';
 </script>
 {% endif %}
 <h2>SignUp</h2>
 
-<form action="/postsignup/" method="post">
+<form action="/post_signup/" method="post">
   {% csrf_token %}
   Name:
   <input type="text" name="name"><br>
