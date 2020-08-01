@@ -51,6 +51,8 @@ class FirebaseSDK(object):
             user = auth.create_user(email=email, password=password)
         except exceptions.AlreadyExistsError:
             return "USER ALREADY EXIST"
+        except ValueError:
+            return "Password must be a string at least 6 characters long"
         self.add_to_firestore(user_data, 'users', user.uid)
         return user.uid
 

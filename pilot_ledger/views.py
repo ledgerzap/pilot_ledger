@@ -78,6 +78,8 @@ def post_signup(request):
         res = cursor.create_user_using_email_pass(name, email, passwd, contact_no)
         if res == "USER ALREADY EXIST":
             return render(request, 'homepage.html', {'message': res})
+        elif res == "Password must be a string at least 6 characters long":
+            return render(request, 'signup.html', {'message': res})
         else:
             return redirect('/')
 
@@ -85,3 +87,5 @@ def post_signup(request):
 def logout(request):
     auth.logout(request)
     return render(request, 'homepage.html')
+
+# Todo : Getting to the dashboard with user uid
