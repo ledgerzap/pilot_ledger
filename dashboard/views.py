@@ -4,8 +4,10 @@ import firebase_utils
 
 cursor = firebase_utils.FirebaseSDK('ledgerzap-firebase.json')
 
+
 def dashboard(request):
     return render(request, 'dashboard.html', {})
+
 
 def create_org(request):
     """
@@ -17,6 +19,7 @@ def create_org(request):
     """
     return render(request, 'create_org.html', {})
 
+
 def post_create_org(request):
     """
     Function which creates an organization instance in firebase and redirects to the user back to the dashboard. The
@@ -26,10 +29,26 @@ def post_create_org(request):
     :return: Http Response containing the Dashboard of the user.
     :rtype: HTTP_RESPONSE
     """
-    pass
+    name = request.POST.get('name')
+    super_user = request.POST.get('user_uid')
+    org_uid = cursor.add_organization(name, super_user)
+
+
+def my_org(request):
+    """
+    A function to fetch the names of all registered organizations under the user's id.
+    :param request: Http_request containing the information of all the user that is user unique id
+    :type request: HTTP_REQUEST
+    :return: Response containing the list of all the organization.
+    :rtype: HTTP_RESPONSE
+    """
+    user_uid = request.POST.get('user_uid')
+    my_orgs = cursor.fetch_orgs(user_uid)
+    return render(request, 'my_orgs.html', {'orgs': my_orgs})
+
 
 """
-# todo : Add the following functions in DashViews:
+todo : Add the following functions in DashViews:
 -Create org
 -My Orgs
 -Within Orgs:
@@ -37,4 +56,6 @@ def post_create_org(request):
     -Curr Deals
     -Past all deals
     -Add deals
+
+Add URLs to function.
 """
