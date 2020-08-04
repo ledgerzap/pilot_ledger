@@ -1,8 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 import firebase_utils
+from pilot_ledger.views import cursor
 
-cursor = firebase_utils.FirebaseSDK('ledgerzap-firebase.json')
+#cursor = firebase_utils.FirebaseSDK('ledgerzap-firebase.json')
 
 
 def dashboard(request):
@@ -49,8 +50,7 @@ def my_org(request):
 
 """
 todo : Add the following functions in DashViews:
--Create org
--My Orgs
+
 -Within Orgs:
     -Org Settings
     -Curr Deals
