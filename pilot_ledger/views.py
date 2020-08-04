@@ -39,6 +39,8 @@ def authenticate(request):
     """
     email = request.POST.get('email')
     passwd = request.POST.get('passwd')
+    if email == "" or passwd == "":
+        return render(request, 'homepage.html', {'message': "PLEASE ENTER A VALID CREDENTIALS"})
     res = cursor.signin_using_email_pass(email, passwd)
     if res != "USER NOT FOUND" or res != "INCORRECT PASSWORD":
         return redirect('/dashboard/')
