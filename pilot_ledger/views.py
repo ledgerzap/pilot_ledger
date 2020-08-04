@@ -42,10 +42,10 @@ def authenticate(request):
     if email == "" or passwd == "":
         return render(request, 'homepage.html', {'message': "PLEASE ENTER A VALID CREDENTIALS"})
     res = cursor.signin_using_email_pass(email, passwd)
-    if res != "USER NOT FOUND" or res != "INCORRECT PASSWORD":
-        return redirect('/dashboard/')
-    else:
+    if res == "USER NOT FOUND" or res == "INCORRECT PASSWORD":
         return render(request, 'homepage.html', {'message': res})
+    else:
+        return redirect('/dashboard/')
 
 
 def signup(request):
