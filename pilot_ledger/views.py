@@ -45,7 +45,7 @@ def authenticate(request):
     if res == "USER NOT FOUND" or res == "INCORRECT PASSWORD":
         return render(request, 'homepage.html', {'message': res})
     else:
-        return redirect('/dashboard/')
+        return HttpResponse("<script>window.location.href='/dashboard/'</script>")
 
 
 def signup(request):

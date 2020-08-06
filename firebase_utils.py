@@ -29,7 +29,6 @@ class FirebaseSDK(object):
         self.db = firestore.client()
         self.user_ref = self.db.collection('users')
 
-
     def create_user_using_email_pass(self, name, email, password, contact):
         """
         Create a new user and return the UID of newly created user
@@ -88,8 +87,6 @@ class FirebaseSDK(object):
             return user.uid
         else:
             return "INCORRECT PASSWORD"
-
-
 
     def fetch_firestore(self, collection, document=None):
         """
@@ -156,7 +153,6 @@ class FirebaseSDK(object):
         user_doc_ref.update({'organizations': firestore.ArrayUnion([org_uid])})
         return org_uid
 
-
     def fetch_orgs(self, user_uid):
         org_ref = self.db.collection('organizations')
         user_doc = self.db.collection('users').document(user_uid)
@@ -178,7 +174,6 @@ class FirebaseSDK(object):
             deal_dict = deal_ref.get().to_dict()
             curr_deals.append(deal_dict['outstanding_bill'])
         return curr_deals
-
 
 
 class Deals(FirebaseSDK):
