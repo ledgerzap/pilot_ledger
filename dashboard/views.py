@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 import firebase_utils
-from pilot_ledger.views import cursor
+from lz_backend.views import cursor
 
 #cursor = firebase_utils.FirebaseSDK('ledgerzap-firebase.json')
 

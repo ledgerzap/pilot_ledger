@@ -39,7 +39,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'pilot_ledger.urls'
+ROOT_URLCONF = 'lz_backend.urls'
 
 TEMPLATES = [
     {
@@ -57,7 +57,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'pilot_ledger.wsgi.application'
+WSGI_APPLICATION = 'lz_backend.wsgi.application'
 
 
 # Database
